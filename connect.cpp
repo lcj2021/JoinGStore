@@ -3,6 +3,8 @@
 #include <set>
 #include <vector>
 #include <algorithm>
+#include <unordered_map>
+#include <stack>
 
 #include <sys/time.h>
 #include <sys/types.h>
@@ -21,9 +23,11 @@ using namespace std;
 vector<GstoreConnector> servers;
 
 string readSPARQL(string filename);
-vector<string> getQueriesInPath(const string &path, int type);
+vector<string> getQueriesInPath(const string &path);
+void buildQueryTree(const string &path, const string & filename);
+unordered_map <string, int> query2ID;
 
-typedef struct queryNeedVars
+typedef struct QueryNeedVars
 {
     int queryId, serverId;
     GstoreConnector *server;
@@ -33,13 +37,72 @@ typedef struct queryNeedVars
     string res;
     long timeCost;
 } QNV;
-bool isIntact[MAXQUERYCNT];
+
+struct TreeNode
+{
+    int id;
+    int lc, rc;
+    bool isSql;
+    string op;
+    string sql;
+}treeNode[100];
+
 void *queryThread(void *args);
 vector<string> evaluateQueriesInServers(vector<string> &queries, vector<GstoreConnector> &servers, const string &db_name, const string &format, long * queryCost);
 
 void writeAns(string filename, string &ans, string end);
 
 long get_cur_time();
+
+// vector<string> join(vector<string> &res1, vector<string> &res2)
+// string join(vector<string> &results)
+// string join(string &res1, string &res2)
+
+bool st[100];
+vector<string> results;
+vector <string> expression;
+stack <string> ops;
+stack <string> res;
+void dfs(TreeNode & u)
+{
+    // if (!u.isSql)               cout << "( ";
+    // if (u.lc != -1 && !st[u.lc])      dfs(treeNode[u.lc]);
+    // if (u.isSql == 0)   cout << u.op << " ";
+    // else                cout << u.id << " ";
+    // if (u.rc != -1 && !st[u.rc])      dfs(treeNode[u.rc]);
+    // if (!u.isSql)               cout << " )";
+
+    if (u.lc != -1 && !st[u.lc])      dfs(treeNode[u.lc]);
+    if (u.rc != -1 && !st[u.rc])      dfs(treeNode[u.rc]);
+
+    if (u.isSql == 0)           expression.push_back(u.op);
+    else                        expression.push_back(results[query2ID[u.sql]]);
+}
+int calTimes;
+void cal ()
+{
+    ofstream out ("calTimes" + to_string(++ calTimes), ios::trunc );
+    string a = res.top();   res.pop();
+    string b = res.top();   res.pop();
+    string op = ops.top();  ops.pop();
+    string c;
+// ====================================================
+    joiner j;
+    if (op == "join")   
+    {
+        c = j.join (a, b);
+        // out << a << endl;   out << "====================================================" << endl;
+        // out << b << endl;   out << "====================================================" << endl;
+    }
+    else
+    {
+        c = j.Union (a, b);
+        // out << a << endl;   out << "====================================================" << endl;
+        // out << b << endl;   out << "====================================================" << endl;
+    }
+    out << "finalRes : " << endl << c << endl;
+    res.push(c);
+}
 
 int main(int argc, char *argv[])
 {
@@ -50,6 +113,7 @@ int main(int argc, char *argv[])
     }
     string dbname(argv[1]);
     string queriesPath(argv[2]);
+    string filename(argv[3]);
     if (queriesPath.find_last_of("/") != queriesPath.size() - 1)
         queriesPath += "/";
 
@@ -63,60 +127,74 @@ int main(int argc, char *argv[])
     servers.push_back(GstoreConnector("47.92.219.207", 4002, "root", "123456"));  // 6 slave 10
     servers.push_back(GstoreConnector("39.100.139.177", 4002, "root", "123456")); // 7 slave 11
 
-    vector<string> queries = getQueriesInPath(queriesPath, 0);
+    vector<string> queries = getQueriesInPath(queriesPath);
+    
+    buildQueryTree(queriesPath, filename);
+
     cout << "Get queries as follow!" << endl;
     for (int i = 0; i < queries.size(); i++)
     {
         cout << queries[i] << endl;
     }
-    // cout << servers[0].query("watdiv100m_MPC", "text", queries[0]) << endl;
 
     // return 0;
     // 查询
     long querytime = get_cur_time(), queryCost = -1;
-    vector<string> results = evaluateQueriesInServers(queries, servers, dbname, "text", & queryCost); // 每一个result，第一行是变量，后面都是变量对应的结果
+    results = evaluateQueriesInServers(queries, servers, dbname, "text", & queryCost); // 每一个result，第一行是变量，后面都是变量对应的结果
 
     cout << "Time of query is: " << queryCost << " ms." << endl;
     
+    // for (int i = 0; i < 6; ++ i)
+    // {
+    //     ifstream in("result" + to_string(i));
+    //     string t = "";
+    //     string line;
+    //     while (getline (in, line))
+    //     {
+    //         t += line + "\n";
+    //     }
+    //     results.push_back(t);
+    // }
+
+    dfs (treeNode[1]);
+    puts("");
+
     // for (int i = 0; i < results.size(); ++ i)
-    //     cout << isIntact[i] << " ";
-    // puts("");
-    // puts("==================================================");
+    // {
+    //     string filename = "result" + to_string(i);
+    //     ofstream out (filename);
+    //     out << results[i] << endl;
+    // }
 
     // 连接
     long jointime = get_cur_time();
-    joiner j;
 
-    //seperate results into partial one and intact one
-    int indexOfIntactQuery = -1;
-    vector<string> partialResults;
-    for (int i = 0; i < results.size(); ++ i)
-        if (!isIntact[i])
-            partialResults.push_back(results[i]);
-        else
-            indexOfIntactQuery = i;
+    for (auto it : expression)
+    {
+        if (it == "join" || it == "union")      
+        {
+            ops.push(it);   
+            cal();
+        }
+        else                                    res.push(it);
+    }
+    ofstream out ("finalRes");
 
-    string finalPartialRes = j.join(partialResults);
     long joinfinished = get_cur_time();
 
-    int cntOfIntact = 0;
-    string finalRes = finalPartialRes;
-    if (indexOfIntactQuery != -1)   
-    {
-        auto & t = results[indexOfIntactQuery];
-        t = t.substr(t.find_first_of("\n") + 1);
-        for (auto & c : t)  if (c == '\n')  ++ cntOfIntact;
-        ++ cntOfIntact;
-        // finalPartialRes += results[indexOfIntactQuery];
-    }
-    cout << "Time of join is : " << joinfinished - jointime << " ms." << endl;
-    cout << "There total time is : " << joinfinished - querytime << " ms." << endl;
-    cout << "The count of intact results is : " << cntOfIntact << endl;
-    cout << "final result is : " << endl;
-    cout << finalRes << endl;
+    string finalRes = res.top();        
+    int cntOfRes = 0;
+
+    auto & t = finalRes;
+    t = t.substr(t.find_first_of("\n") + 1);
+    for (auto & c : t)  if (c == '\n')  ++ cntOfRes;
+
+    cout << "Time of join : " << joinfinished - jointime << " ms." << endl;
+    cout << "Total time : " << joinfinished - querytime << " ms." << endl;
+    cout << "Count of final results : " << cntOfRes << endl;
+    cout << res.top() << endl;
     cout << "query success." << endl;
 
-    cout << results[indexOfIntactQuery] << endl;
     return 0;
 }
 
@@ -141,14 +219,13 @@ string readSPARQL(string filename)
     return sparql;
 }
 
-vector<string> getQueriesInPath(const string &path, int type)   //type 1:intact query   type 2:partial query    type 0:default
+vector<string> getQueriesInPath(const string &path)
 {
     DIR *dir;
     struct dirent *ptr;
 
-    vector<string> ret;
-    vector<string> query_Intact;
-    vector<string> query_Partial;
+    vector<string> queriesfiles;
+    vector<string> queries;
 
     if ((dir = opendir(path.c_str())) == NULL)
     {
@@ -162,51 +239,25 @@ vector<string> getQueriesInPath(const string &path, int type)   //type 1:intact 
             continue;
         else if (ptr->d_type == 8) // 文件(8)、目录(4)、链接文件(10)
         {
-            if (type == 1)          cout << "Intact Queries : ";
-            else if (type == 2)     cout << "Partial Queries : ";
-            cout << path + ptr->d_name << endl;
-            ret.push_back(path + ptr->d_name);
+            string file = ptr->d_name;
+            // cout << file << endl;
+            if (file[0] != 'q')     continue;
+            queriesfiles.push_back(file);
         }
         else if (ptr->d_type == 10)
             continue;
-        else if (ptr->d_type == 4)
-        {
-            //Add temp var "currDir" in case that ptr points to next d_name
-            string currDir = ptr -> d_name;
-            vector<string> t;
-            string nextPath = path + ptr -> d_name + "/";
-            if (currDir == "intact")
-            {
-                t = getQueriesInPath(nextPath, 1);
-                for (auto it : t)
-                    query_Intact.push_back(it);
-            }
-            else if (currDir == "partial")
-            {
-                t = getQueriesInPath(nextPath, 2);
-                for (auto it : t)
-                    query_Partial.push_back(it);
-            }
-        }
     }
-    closedir (dir);
+    closedir(dir);
 
-    sort (query_Intact.begin(), query_Intact.end());
-    sort (query_Partial.begin(), query_Partial.end());
+    sort(queriesfiles.begin(), queriesfiles.end());
+    for (int i = 0; i < queriesfiles.size(); ++ i)          query2ID[queriesfiles[i]] = i;
+    for (auto & it : queriesfiles)                          cout << it << " " << query2ID[it] << endl;
+    for (auto & it : queriesfiles)                          it = path + it;
 
-    //send partial / intact queries to slaves
-    for (auto it : query_Partial)        
-    {
-        isIntact[ret.size()] = false;
-        ret.push_back(readSPARQL(it));
-    }
-    for (auto it : query_Intact)        
-    {
-        isIntact[ret.size()] = true;
-        ret.push_back(readSPARQL(it));
-    }
+    for (auto it : queriesfiles)
+        queries.push_back(readSPARQL(it));
     
-    return ret;
+    return queries;
 }
 
 void *queryThread(void *args)
@@ -311,6 +362,29 @@ vector<string> evaluateQueriesInServers(vector<string> &queries, vector<GstoreCo
     // }
     for (auto it : queryTime)   * queryCost = max(it, * queryCost);
     return results;
+}
+
+void buildQueryTree(const string &path, const string & filename)
+{
+    ifstream in(path + filename);
+    int n;
+    in >> n;
+    for (int i = 1; i <= n; ++ i)
+    {
+        int id, lc, rc, isSql;
+        in >> id >> lc >> rc >> isSql;
+        treeNode[i] = {id, lc, rc, isSql};
+        if (isSql)
+        {
+            string t;
+            in >> t;
+            treeNode[i].sql = t;
+            // treeNode[i].sql = readSPARQL(path + t);
+        }
+        else
+            in >> treeNode[i].op;
+    }
+    // cout << treeNode[7].isSql << endl << treeNode[7].sql << endl;
 }
 
 void writeAns(string filename, string &ans, string end)

@@ -4,3 +4,8 @@
 /*.txt
 
 /LocalJoin/
+/backup/
+/querytmp/
+/resTmp/
+
+/2021*/

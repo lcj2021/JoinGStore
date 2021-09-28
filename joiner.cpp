@@ -152,7 +152,7 @@ vector<string> joiner::join(vector<string> &res1, vector<string> &res2)
     return ans;
 }
 
-//arg results[0] : "<v1>\t<v2>\t<v3>\n<v1>\t<v3>\t<v2>\n..."
+//arg results[0] : "<v1>\t<v2>\t<v3> \n <v1>\t<v3>\t<v2> \n ..."
 string joiner::join(vector<string> &results)
 {
     // if partial has no results or arg:results is empty, return ""
@@ -207,11 +207,38 @@ string joiner::join(string &res1, string &res2)
 
     vector<string> ans = join(lines_1, lines_2);
 
-    stringstream ss;
-    for (vector<string>::iterator it = ans.begin(); it != ans.end(); it++)
-        ss << *it << endl;
     string finalRes;
-    ss >> finalRes;
 
+    for (auto item : ans)
+    {
+        finalRes += item;
+        finalRes += "\n";
+    }
+
+    return finalRes;
+}
+
+string joiner::Union(string &res1, string &res2)
+{
+    set <string> s;
+    string head = res1.substr(0, res1.find_first_of("\n"));
+    // cout << "head is : " << head << endl;
+    res1 = res1.substr(res1.find_first_of("\n") + 1);
+    res2 = res2.substr(res2.find_first_of("\n") + 1);
+
+    vector <string> v1, v2;
+    split(res1, v1, "\n");
+    split(res2, v2, "\n");
+
+    for (auto it : v1)  s.insert(it);
+    for (auto it : v2)  s.insert(it);
+
+    string finalRes = head + "\n";
+
+    for (auto it : s)
+    {
+        finalRes += it;
+        finalRes += "\n";
+    }
     return finalRes;
 }

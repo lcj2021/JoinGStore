@@ -26,4 +26,6 @@ public:
     string join(vector<string> &results);
     vector<string> join(vector<string> &res1, vector<string> &res2);
     string join(string &res1, string &res2);
+
+    string Union(string &res1, string &res2);
 };
