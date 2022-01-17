@@ -1,0 +1,11 @@
+SELECT ?v0 ?v1 ?v2 ?v3 ?v4 ?v5 ?v6 ?v7 ?v8 ?v9 WHERE {
+?v0	<http://ogp.me/ns#tag>	?v1 .
+?v2	<http://ogp.me/ns#title>	?v3 .
+?v0	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	?v4 .
+?v2	<http://schema.org/contentRating>	?v5 .
+?v2	<http://schema.org/description>	?v6 .
+?v2	<http://schema.org/expires>	?v7 .
+?v2	<http://schema.org/keywords>	?v8 .
+?v2	<http://schema.org/text>	?v9 .
+?v2	<http://db.uwaterloo.ca/~galuc/wsdbm/hasGenre>	?v0 .
+}

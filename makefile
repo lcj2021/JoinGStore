@@ -1,5 +1,5 @@
 CC = g++
-CFLAG = -std=c++11 -O2
+CFLAG = -std=c++11 -g
 
 objdir = .obj/
 

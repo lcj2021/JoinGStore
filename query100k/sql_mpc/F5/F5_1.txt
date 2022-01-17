@@ -1,0 +1,4 @@
+select ?v1 ?v5 ?v6 where {
+?v1	<http://ogp.me/ns#title>	?v5 . 
+?v1	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	?v6 . 
+}

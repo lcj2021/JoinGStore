@@ -1,0 +1,5 @@
+select ?v0 ?v1 ?v3 where {
+?v0	<http://schema.org/jobTitle>	?v1 . 
+?v0	<http://schema.org/nationality>	?v3 . 
+<http://db.uwaterloo.ca/~galuc/wsdbm/City16>	<http://www.geonames.org/ontology#parentCountry>	?v3 . 
+}

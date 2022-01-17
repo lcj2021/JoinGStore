@@ -1,0 +1,21 @@
+select ?v0 ?v1 ?v2 where {
+?v0	<http://schema.org/legalName>	?v1 . 
+?v0	<http://purl.org/goodrelations/offers>	?v2 . 
+}
+
+select ?v2 ?v3 ?v5 where {
+?v2	<http://schema.org/eligibleRegion>	<http://db.uwaterloo.ca/~galuc/wsdbm/Country5> . 
+?v2	<http://purl.org/goodrelations/includes>	?v3 . 
+}
+
+select ?v3 ?v8 ?v9 where {
+?v8	<http://purl.org/stuff/rev#totalVotes>	?v9 . 
+?v3	<http://purl.org/stuff/rev#hasReview>	?v8 . 
+}
+
+select ?v3 ?v4 ?v5 ?v6 ?v7 where {
+?v4	<http://schema.org/jobTitle>	?v5 . 
+?v4	<http://xmlns.com/foaf/homepage>	?v6 . 
+?v4	<http://db.uwaterloo.ca/~galuc/wsdbm/makesPurchase>	?v7 . 
+?v7	<http://db.uwaterloo.ca/~galuc/wsdbm/purchaseFor>	?v3 . 
+}

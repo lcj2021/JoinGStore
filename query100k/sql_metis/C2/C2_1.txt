@@ -1,0 +1,4 @@
+select ?v2 ?v3 where {
+?v2	<http://schema.org/eligibleRegion>	<http://db.uwaterloo.ca/~galuc/wsdbm/Country5> . 
+?v2	<http://purl.org/goodrelations/includes>	?v3 . 
+}

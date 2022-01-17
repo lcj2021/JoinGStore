@@ -1,0 +1,4 @@
+select ?v0 ?v2 where {
+?v0	<http://ogp.me/ns#tag>	<http://db.uwaterloo.ca/~galuc/wsdbm/Topic119> . 
+?v0	<http://schema.org/caption>	?v2 . 
+}

@@ -32,28 +32,26 @@ void joiner::split(const string &s, vector<string> &tokens, const string &delimi
     }
 }
 
-//Calculate intersection var cnt
 vector<string> joiner::intersection(const vector<string> &s1, const vector<string> &s2)
 {
     vector<string> commonVar;
-    for (auto it1 : s1)
-        for (auto it2 : s2)
-            if (it1 == it2)
-                commonVar.push_back(it1);
+    for (vector<string>::const_iterator it1 = s1.begin(); it1 != s1.end(); it1++)
+        for (vector<string>::const_iterator it2 = s2.begin(); it2 != s2.end(); it2++)
+            if (it1->compare(*it2) == 0)
+                commonVar.push_back(*it1);
 
     return commonVar;
 }
 
-// Union 2 vector by STL set
 vector<string> joiner::unionSet(const vector<string> &s1, const vector<string> &s2)
 {
     set<string> varSet;
-    for (auto it1 : s1)
-        varSet.insert(it1);
-    for (auto it2 : s2)
-        varSet.insert(it2);
+    for (vector<string>::const_iterator it1 = s1.begin(); it1 != s1.end(); it1++)
+        varSet.insert(*it1);
+    for (vector<string>::const_iterator it2 = s2.begin(); it2 != s2.end(); it2++)
+        varSet.insert(*it2);
 
-    return vector<string> (varSet.begin(), varSet.end());
+    return vector<string>(varSet.begin(), varSet.end());
 }
 
 /**
@@ -77,14 +75,11 @@ vector<string> joiner::join(vector<string> &res1, vector<string> &res2)
 
     map<string, int> varMap_1;
     map<string, int> varMap_2;
-
-    // varMap["?v0"] = 0, varMap["?v2"] = 1, etc.
     for (int i = 0; i < varVec_1.size(); i++)
         varMap_1[varVec_1[i]] = i;
     for (int i = 0; i < varVec_2.size(); i++)
         varMap_2[varVec_2[i]] = i;
 
-    // build vec on the basis of larger one, by grouping the smaller one
     bool choose = res1.size() < res2.size();
     vector<string> *buildVec = choose ? &res2 : &res1;
     map<string, int> *buildVarMap = choose ? &varMap_2 : &varMap_1;
@@ -92,12 +87,12 @@ vector<string> joiner::join(vector<string> &res1, vector<string> &res2)
     map<string, int> *probeVarMap = choose ? &varMap_1 : &varMap_2;
 
     cout << "buildVarMap's size is " << buildVarMap->size() << endl;
-    for (auto & it : *buildVarMap)
-        cout << it.first << " ";
+    for (map<string, int>::iterator i = buildVarMap->begin(); i != buildVarMap->end(); i++)
+        cout << i->first << " ";
     cout << endl;
     cout << "probeVarMap's size is " << probeVarMap->size() << endl;
-    for (auto & it : *probeVarMap)
-        cout << it.first << " ";
+    for (map<string, int>::iterator i = probeVarMap->begin(); i != probeVarMap->end(); i++)
+        cout << i->first << " ";
     cout << endl;
 
     // 建hash表
@@ -152,19 +147,8 @@ vector<string> joiner::join(vector<string> &res1, vector<string> &res2)
     return ans;
 }
 
-//arg results[0] : "<v1>\t<v2>\t<v3> \n <v1>\t<v3>\t<v2> \n ..."
 string joiner::join(vector<string> &results)
 {
-    // if partial has no results or arg:results is empty, return ""
-    if (results.empty())        return "";
-
-    for (int i = 0; i < results.size(); ++ i)
-    {
-        if (results[i] != "")   break;
-        if (i == results.size() - 1)    return "";
-    }
-
-
     string ans0 = results[0];
     vector<string> linesOfAns0;
     split(ans0, linesOfAns0, "\n");
@@ -186,7 +170,7 @@ string joiner::join(vector<string> &results)
     }
     else
     {
-        cout << "There has answer: " << linesOfAns0.size() - 1 << endl;
+        cout << "There has answer: " << linesOfAns0.size()-1 << endl;
         finalAns = linesOfAns0[0];
         for (int i = 1; i < linesOfAns0.size(); i++)
         {
@@ -207,38 +191,11 @@ string joiner::join(string &res1, string &res2)
 
     vector<string> ans = join(lines_1, lines_2);
 
+    stringstream ss;
+    for (vector<string>::iterator it = ans.begin(); it != ans.end(); it++)
+        ss << *it << endl;
     string finalRes;
+    ss >> finalRes;
 
-    for (auto item : ans)
-    {
-        finalRes += item;
-        finalRes += "\n";
-    }
-
-    return finalRes;
-}
-
-string joiner::Union(string &res1, string &res2)
-{
-    set <string> s;
-    string head = res1.substr(0, res1.find_first_of("\n"));
-    // cout << "head is : " << head << endl;
-    res1 = res1.substr(res1.find_first_of("\n") + 1);
-    res2 = res2.substr(res2.find_first_of("\n") + 1);
-
-    vector <string> v1, v2;
-    split(res1, v1, "\n");
-    split(res2, v2, "\n");
-
-    for (auto it : v1)  s.insert(it);
-    for (auto it : v2)  s.insert(it);
-
-    string finalRes = head + "\n";
-
-    for (auto it : s)
-    {
-        finalRes += it;
-        finalRes += "\n";
-    }
     return finalRes;
 }

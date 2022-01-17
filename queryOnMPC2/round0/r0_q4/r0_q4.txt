@@ -1,0 +1,7 @@
+SELECT ?v0 ?v1 ?v2 ?v3 ?v4 ?v5 WHERE {
+?v0	<http://xmlns.com/foaf/homepage>	?v1 .
+?v0	<http://ogp.me/ns#tag>	?v2 .
+?v0	<http://schema.org/text>	?v3 .
+?v1	<http://schema.org/url>	?v4 .
+?v1	<http://db.uwaterloo.ca/~galuc/wsdbm/hits>	?v5 .
+}

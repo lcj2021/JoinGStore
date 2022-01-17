@@ -1,0 +1,3 @@
+select ?v0 ?v1 where {
+?v0	<http://schema.org/jobTitle>	?v1 . 
+}

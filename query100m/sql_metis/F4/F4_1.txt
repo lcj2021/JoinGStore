@@ -1,0 +1,5 @@
+select ?v1 ?v5 ?v6 where {
+?v1	<http://schema.org/url>	?v5 . 
+?v1	<http://db.uwaterloo.ca/~galuc/wsdbm/hits>	?v6 . 
+?v1	<http://schema.org/language>	<http://db.uwaterloo.ca/~galuc/wsdbm/Language0> . 
+}

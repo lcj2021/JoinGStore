@@ -1,0 +1,3 @@
+select ?v3 ?v7 where {
+?v7	<http://db.uwaterloo.ca/~galuc/wsdbm/purchaseFor>	?v3 . 
+}

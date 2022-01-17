@@ -1,0 +1,4 @@
+select ?v3 ?v8 ?v9 where {
+?v8	<http://purl.org/stuff/rev#totalVotes>	?v9 . 
+?v3	<http://purl.org/stuff/rev#hasReview>	?v8 . 
+}

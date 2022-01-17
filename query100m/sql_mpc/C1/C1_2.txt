@@ -1,0 +1,4 @@
+select ?v6 ?v7 ?v8 where {
+?v7	<http://schema.org/actor>	?v6 . 
+?v7	<http://schema.org/language>	?v8 .
+}

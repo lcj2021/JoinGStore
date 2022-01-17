@@ -1,11 +1,3 @@
-/.vscode
-/.git
-#  output : out.txt input : in.nt
-/*.txt
-
-/LocalJoin/
-/backup/
-/querytmp/
-/resTmp/
-
-/2021*/
+.*/
+cpp/
+connect

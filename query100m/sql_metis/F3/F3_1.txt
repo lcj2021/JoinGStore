@@ -1,0 +1,4 @@
+select ?v4 ?v5 ?v6 where {
+?v4	<http://db.uwaterloo.ca/~galuc/wsdbm/makesPurchase>	?v5 .
+?v5	<http://db.uwaterloo.ca/~galuc/wsdbm/purchaseDate>	?v6 .
+}

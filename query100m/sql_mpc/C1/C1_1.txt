@@ -1,0 +1,4 @@
+select ?v4 ?v5 ?v6  where {
+?v4	<http://purl.org/stuff/rev#title>	?v5 . 
+?v4	<http://purl.org/stuff/rev#reviewer>	?v6 . 
+}
