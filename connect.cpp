@@ -199,7 +199,7 @@ vector<string> evaluateQueriesInServers(vector<string> &queries, vector<GstoreCo
             else
             {
                 cout << "query " << i << " server " << j << " Get Answer" << endl;
-	        	// if(j == 2)      cout << "query " << i << ' ' << endl << temp_res << endl;
+	        	if(j == 0)      cout << "query " << i << ' ' << endl << temp_res << endl;
                 // cout << endl;
             }
 

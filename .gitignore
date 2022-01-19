@@ -3,3 +3,5 @@ cpp/
 connect
 *.swp
 query*/
+.connect.cpp.swp
+bin/
