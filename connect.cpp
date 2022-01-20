@@ -15,6 +15,7 @@
 
 #include "client.h"
 #include "joiner.h"
+#include "output.cpp"
 
 using namespace std;
 #define P 4002
@@ -33,7 +34,7 @@ typedef struct queryNeedVars
     string res;
 } QNV;
 void *queryThread(void *args);
-vector<string> evaluateQueriesInServers(vector<string> &queries, vector<GstoreConnector> &servers, const string &db_name, const string &format);
+vector<string> evaluateQueriesInServers(vector<string> &queries, vector<GstoreConnector> &servers, const string &db_name, const string &format, long *query_time);
 
 void writeAns(string filename, string &ans, string end);
 
@@ -58,11 +59,16 @@ int main(int argc, char *argv[])
     servers.push_back(GstoreConnector("39.100.146.205", P, "root", "123456")); // 3 slave 7
     servers.push_back(GstoreConnector("47.92.120.35", P, "root", "123456"));   // 4 slave 8
     servers.push_back(GstoreConnector("39.99.176.42", P, "root", "123456"));   // 5 slave 9
-    servers.push_back(GstoreConnector("47.92.219.207", P, "root", "123456"));  // 6 slave 10
+    servers.push_back(GstoreConnector("47.92.162.51", P, "root", "123456"));  // 6 slave 10
     servers.push_back(GstoreConnector("39.100.139.177", P, "root", "123456")); // 7 slave 11
 
+    string query_name = queriesPath.substr(queriesPath.substr(0, queriesPath.size() - 1)
+    .find_last_of("/") + 1);
+    // cout << queriesPath << endl;
+    // cout << query_name << endl;
+
     vector<string> queries = getQueriesInPath(queriesPath);
-    cout << "Gotten queries as follow!" << endl;
+    cout << "Get queries as follow!" << endl;
     for (int i = 0; i < queries.size(); i++)
     {
         cout << queries[i] << endl;
@@ -71,28 +77,34 @@ int main(int argc, char *argv[])
     // return 0;
 
     // 查询
-    long querytime = get_cur_time();
-    vector<string> results = evaluateQueriesInServers(queries, servers, dbname, "text"); // 每一个result，第一行是变量，后面都是变量对应的结果
+    long querytime = get_cur_time(), query_time = -1;
+    vector<string> results = evaluateQueriesInServers(queries, servers, dbname, "text", &query_time); // 每一个result，第一行是变量，后面都是变量对应的结果
+    cout << "Time of query is: " << query_time << " ms." << endl;
 
-    long queryfinishedtime = get_cur_time();
-    cout << "Time of query is: " << queryfinishedtime - querytime << " ms." << endl;
+    // long queryfinishedtime = get_cur_time();
+    // cout << "Time of query is: " << queryfinishedtime - querytime << " ms." << endl;
 
     // 连接
     long jointime = get_cur_time();
     joiner j;
-    string finalRes = j.join(results);
+    unsigned int res_cnt;
+    string finalRes = j.join(results, &res_cnt);
     long joinfinished = get_cur_time();
-    cout << "Time of join is : " << joinfinished - jointime << " ms." << endl;
-    cout << "There total time is " << joinfinished - querytime << " ms." << endl;
-    cout << "final result is : " << endl;
+    long join_time = joinfinished - jointime, total_time = joinfinished - querytime;
+    cout << "Time of join is : " << join_time << " ms." << endl;
+    cout << "Time of all is " << total_time << " ms." << endl;
+    cout << "Final result is : " << endl;
     cout << finalRes << endl;
-    cout << "query success." << endl;
+    cout << "Query success." << endl;
+
+
+    ans2file("round0_res", query_name, query_time, join_time, total_time, res_cnt);
     return 0;
 }
 
 string readSPARQL(string filename)
 {
-    cout << "it's opening " << filename << endl;
+    cout << "Opening " << filename << endl;
     ifstream ifs;
     ifs.open(filename, ios::in);
     string sparql;
@@ -153,12 +165,16 @@ void *queryThread(void *args)
     return NULL;
 }
 
-vector<string> evaluateQueriesInServers(vector<string> &queries, vector<GstoreConnector> &servers, const string &db_name, const string &format)
+vector<string> evaluateQueriesInServers(vector<string> &queries, vector<GstoreConnector> &servers, const string &db_name, const string &format, long *query_time)
 {
     vector<string> results;
     // 并行查询
     pthread_t thread[queries.size()][servers.size()];
     QNV qnv[queries.size()][servers.size()];
+
+    long queryTime[servers.size()];
+    memset(queryTime, 0, sizeof queryTime);
+
     for (int i = 0; i < queries.size(); i++)
     {
         for (int j = 0; j < servers.size(); j++)
@@ -199,18 +215,21 @@ vector<string> evaluateQueriesInServers(vector<string> &queries, vector<GstoreCo
             else
             {
                 cout << "query " << i << " server " << j << " Get Answer" << endl;
-	        	if(j == 0)      cout << "query " << i << ' ' << endl << temp_res << endl;
+	        	// if(j == 0)      cout << "query " << i << ' ' << endl << temp_res << endl;
                 // cout << endl;
             }
 
             vector<string> lines;
 
-			if (j == 1)		cout << temp_res << endl;
             joiner::split(temp_res, lines, "\n");
             vector<string>::iterator iter = lines.begin();
+            
+            queryTime[j] += stol(*iter);
+            ++ iter;
+
             if (firstRes) // 第一次添加结果
             {
-                resOfQuery = lines[0];
+                resOfQuery = lines[1];
                 firstRes = false;
             }
             // 非第一次添加结果，需要去掉首行变量
@@ -229,6 +248,7 @@ vector<string> evaluateQueriesInServers(vector<string> &queries, vector<GstoreCo
             results.push_back(resOfQuery);
         }
     }
+    for (auto it : queryTime)   * query_time = max(it, * query_time);
     return results;
 }
 

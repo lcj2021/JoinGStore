@@ -23,7 +23,7 @@ public:
     bool isContained(string item);
     void static split(const string &s, vector<string> &tokens, const string &delimiters = " ");
 
-    string join(vector<string> &results);
+    string join(vector<string> &results, unsigned int *res_cnt);
     vector<string> join(vector<string> &res1, vector<string> &res2);
     string join(string &res1, string &res2);
 };

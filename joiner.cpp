@@ -147,7 +147,7 @@ vector<string> joiner::join(vector<string> &res1, vector<string> &res2)
     return ans;
 }
 
-string joiner::join(vector<string> &results)
+string joiner::join(vector<string> &results, unsigned int *res_cnt)
 {
     string ans0 = results[0];
     vector<string> linesOfAns0;
@@ -165,12 +165,14 @@ string joiner::join(vector<string> &results)
     string finalAns;
     if(linesOfAns0.size() == 0 || linesOfAns0.size() == 1)
     {
-        cout << "There has answer: " << 0 << endl;
+        cout << "Count of answer: " << 0 << endl;
         finalAns = "[empty result]";
+        *res_cnt = 0;
     }
     else
     {
-        cout << "There has answer: " << linesOfAns0.size()-1 << endl;
+        *res_cnt = linesOfAns0.size() - 1;
+        cout << "Count of answer: " << *res_cnt << endl;
         finalAns = linesOfAns0[0];
         for (int i = 1; i < linesOfAns0.size(); i++)
         {
